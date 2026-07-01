@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import axios from 'axios'
+import LoginPage from './LoginPage'
+import SignUpPage from './SignUpPage'
 import UploadScreen from './UploadScreen'
 import LoadingScreen from './LoadingScreen'
 import ResultsDashboard from './ResultsDashboard'
@@ -8,10 +10,31 @@ import './index.css'
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 export default function App() {
-  const [state, setState] = useState('upload') // 'upload' | 'loading' | 'results' | 'error'
+  // auth: 'login' | 'signup' | 'app'
+  const [auth, setAuth] = useState('login')
+  const [user, setUser] = useState(null)
+
+  // app flow: 'upload' | 'loading' | 'results' | 'error'
+  const [state, setState] = useState('upload')
   const [result, setResult] = useState(null)
   const [imageUrl, setImageUrl] = useState(null)
   const [error, setError] = useState(null)
+
+  function handleLogin(u) {
+    setUser(u)
+    setAuth('app')
+  }
+
+  function handleSignUp(u) {
+    setUser(u)
+    setAuth('app')
+  }
+
+  function handleLogout() {
+    setUser(null)
+    setAuth('login')
+    handleReset()
+  }
 
   async function handleAnalyze(file) {
     setError(null)
@@ -42,6 +65,16 @@ export default function App() {
     setState('upload')
   }
 
+  // ── Auth screens (no shell header) ──────────────────────────────────────
+  if (auth === 'login') {
+    return <LoginPage onLogin={handleLogin} onGoSignUp={() => setAuth('signup')} />
+  }
+
+  if (auth === 'signup') {
+    return <SignUpPage onSignUp={handleSignUp} onGoLogin={() => setAuth('login')} />
+  }
+
+  // ── Main app ─────────────────────────────────────────────────────────────
   return (
     <div className="app">
       <header className="header">
@@ -49,6 +82,15 @@ export default function App() {
           Flyer<span>Mentor</span>
         </span>
         <span className="header-tag">AI Design Critic</span>
+
+        <nav className="header-nav">
+          <span className="header-user">
+            Hello, <strong>{user?.name ?? 'there'}</strong>
+          </span>
+          <button className="btn btn-secondary" style={{ padding: '6px 14px' }} onClick={handleLogout}>
+            Sign out
+          </button>
+        </nav>
       </header>
 
       <main className="main">
